@@ -1,15 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <title>Home</title>
+    <title>JWT Token Generator</title>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width" />
-    <!--
-      Need a visual blank slate?
-      Remove all code in `styles.css`!
-    -->
     <link rel="stylesheet" href="styles.css" />
-    <script type="module" src="script.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jsonwebtoken/9.0.0/jsonwebtoken.min.js"></script>
   </head>
   <body>
     <nav>
@@ -17,7 +13,90 @@
       <a href="/page2.html">Other page</a>
     </nav>
     <main>
-      <h1>Home page</h1>
+      <h1>JWT Token Generator</h1>
+
+      <div class="container">
+        <div class="form-group">
+          <label for="payload">Payload (JSON):</label>
+          <textarea id="payload" rows="5" cols="50">{
+  "userId": 123,
+  "username": "testuser",
+  "role": "user"
+}</textarea>
+        </div>
+
+        <div class="form-group">
+          <label for="secret">Secret Key:</label>
+          <input type="text" id="secret" value="your-secret-key" />
+        </div>
+
+        <div class="form-group">
+          <label for="expiry">Expiry Time:</label>
+          <input type="text" id="expiry" value="1h" />
+          <small>(e.g., 30s, 5m, 1h, 2d)</small>
+        </div>
+
+        <button id="generate-btn">Generate Token</button>
+
+        <div class="result-container">
+          <h3>Generated Token:</h3>
+          <pre id="token-result"></pre>
+
+          <h3>Decoded Token:</h3>
+          <pre id="decoded-result"></pre>
+
+          <button id="verify-btn">Verify Token</button>
+        </div>
+      </div>
     </main>
+
+    <script>
+      document.addEventListener('DOMContentLoaded', () => {
+        const generateBtn = document.getElementById('generate-btn');
+        const verifyBtn = document.getElementById('verify-btn');
+        const tokenResult = document.getElementById('token-result');
+        const decodedResult = document.getElementById('decoded-result');
+
+        let currentToken = '';
+
+        generateBtn.addEventListener('click', () => {
+          try {
+            const payload = JSON.parse(document.getElementById('payload').value);
+            const secret = document.getElementById('secret').value;
+            const expiry = document.getElementById('expiry').value;
+
+            // For client-side demo purposes only - in real applications, token generation
+            // should happen on the server side for security
+            currentToken = jwt.sign(payload, secret, { expiresIn: expiry });
+
+            tokenResult.textContent = currentToken;
+
+            // Decode and display the token
+            const decoded = jwt.decode(currentToken);
+            decodedResult.textContent = JSON.stringify(decoded, null, 2);
+          } catch (error) {
+            tokenResult.textContent = `Error: ${error.message}`;
+          }
+        });
+
+        verifyBtn.addEventListener('click', () => {
+          try {
+            const secret = document.getElementById('secret').value;
+
+            // For client-side demo purposes only
+            const verified = jwt.verify(currentToken, secret);
+            decodedResult.textContent = JSON.stringify(verified, null, 2);
+            alert('Token is valid!');
+          } catch (error) {
+            if (error.name === 'TokenExpiredError') {
+              alert('Token has expired!');
+            } else {
+              alert(`Invalid token: ${error.message}`);
+            }
+            decodedResult.textContent = `Error: ${error.message}`;
+          }
+        });
+      });
+    </script>
   </body>
 </html>
